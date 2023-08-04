@@ -12,6 +12,7 @@ using CookComputing.XmlRpc;
 using FTPLib;
 using Ketarin.Forms;
 using MyDownloader.Core;
+using TextCopy;
 using MyDownloader.Extension.Protocols;
 using Settings = CDBurnerXP.Settings;
 
@@ -27,7 +28,7 @@ namespace Ketarin
 
         private ApplicationJob[] m_Jobs;
         private Dictionary<ApplicationJob, short> m_Progress;
-        private readonly Dictionary<ApplicationJob, Status> m_Status = new Dictionary<ApplicationJob,Status>();
+        private readonly Dictionary<ApplicationJob, Status> m_Status = new Dictionary<ApplicationJob, Status>();
         private readonly Dictionary<ApplicationJob, long> m_Size = new Dictionary<ApplicationJob, long>();
         private bool m_CancelUpdates;
         protected int m_LastProgress = -1;
@@ -117,7 +118,7 @@ namespace Ketarin
 
             #endregion
 
-            public JobProgressChangedEventArgs(int progressPercentage, ApplicationJob job)
+            public JobProgressChangedEventArgs (int progressPercentage, ApplicationJob job)
                 : base(progressPercentage, null)
             {
                 m_Job = job;
@@ -163,7 +164,7 @@ namespace Ketarin
 
             #endregion
 
-            public JobStatusChangedEventArgs(ApplicationJob job, Status newStatus)
+            public JobStatusChangedEventArgs (ApplicationJob job, Status newStatus)
             {
                 m_Job = job;
                 m_NewStatus = newStatus;
@@ -201,7 +202,7 @@ namespace Ketarin
         /// cancels the process, these WebRequests wil be aborted,
         /// so that it finishes more or less instantly.
         /// </summary>
-        internal static void AddRequestToCancel(WebRequest reqest)
+        internal static void AddRequestToCancel (WebRequest reqest)
         {
             lock (m_Requests)
             {
@@ -212,7 +213,7 @@ namespace Ketarin
         /// <summary>
         /// Cancels the updating progress.
         /// </summary>
-        public void Cancel()
+        public void Cancel ()
         {
             m_CancelUpdates = true;
             lock (m_Requests)
@@ -241,7 +242,7 @@ namespace Ketarin
         /// Returns the download size of a given application in bytes.
         /// </summary>
         /// <returns>-1 if the size cannot be determined, -2 if no file size has been determined yet</returns>
-        public long GetDownloadSize(ApplicationJob job)
+        public long GetDownloadSize (ApplicationJob job)
         {
             if (m_Size == null || !m_Size.ContainsKey(job)) return -1;
 
@@ -252,7 +253,7 @@ namespace Ketarin
         /// Returns the progress of the given application.
         /// </summary>
         /// <returns>-1 for no progress yet, otherwise 0 to 100</returns>
-        public short GetProgress(ApplicationJob job)
+        public short GetProgress (ApplicationJob job)
         {
             if (m_Progress == null || !m_Progress.ContainsKey(job)) return -1;
 
@@ -263,7 +264,7 @@ namespace Ketarin
         /// Returns the current status of a given application.
         /// </summary>
         /// <returns>Idle by default</returns>
-        public Status GetStatus(ApplicationJob job)
+        public Status GetStatus (ApplicationJob job)
         {
             if (m_Status == null || !m_Status.ContainsKey(job)) return Status.Idle;
 
@@ -275,7 +276,7 @@ namespace Ketarin
         /// applications asynchronously.
         /// </summary>
         /// <param name="onlyCheck">Specifies whether or not to download the updates</param>
-        public void BeginUpdate(ApplicationJob[] jobs, bool onlyCheck, bool installUpdated)
+        public void BeginUpdate (ApplicationJob[] jobs, bool onlyCheck, bool installUpdated)
         {
             IsBusy = true;
             m_Jobs = jobs;
@@ -303,7 +304,7 @@ namespace Ketarin
         /// Checks for which of the given applications updates
         /// are available asynchronously.
         /// </summary>
-        public void BeginCheckForOnlineUpdates(ApplicationJob[] jobs)
+        public void BeginCheckForOnlineUpdates (ApplicationJob[] jobs)
         {
             DateTime lastUpdate = (DateTime)Settings.GetValue("LastUpdateCheck", DateTime.MinValue);
             if (lastUpdate.Date == DateTime.Now.Date)
@@ -313,7 +314,7 @@ namespace Ketarin
             }
 
             Settings.SetValue("LastUpdateCheck", DateTime.Now);
-            Thread thread = new Thread(this.CheckForOnlineUpdates) {IsBackground = true};
+            Thread thread = new Thread(this.CheckForOnlineUpdates) { IsBackground = true };
             thread.Start(jobs);
         }
 
@@ -321,7 +322,7 @@ namespace Ketarin
         /// Checks for which of the given applications updates
         /// are available. Fires an event when finished.
         /// </summary>
-        private void CheckForOnlineUpdates(object argument)
+        private void CheckForOnlineUpdates (object argument)
         {
             ApplicationJob[] jobs = argument as ApplicationJob[];
 
@@ -358,7 +359,7 @@ namespace Ketarin
         /// Performs the actual update check for the current applications.
         /// Starts multiple threads if necessary.
         /// </summary>
-        private void UpdateApplications()
+        private void UpdateApplications ()
         {
             m_CancelUpdates = false;
             m_Errors = new List<ApplicationJobError>();
@@ -442,7 +443,7 @@ namespace Ketarin
         /// Performs the update process of a single application.
         /// Catches most exceptions and stores them for later use.
         /// </summary>
-        private void StartNewThread(object paramJob)
+        private void StartNewThread (object paramJob)
         {
             ApplicationJob job = paramJob as ApplicationJob;
 
@@ -595,7 +596,7 @@ namespace Ketarin
         /// Handles download failure (set failed state, add to errors) and executes the "update failed"
         /// command for additional control.
         /// </summary>
-        private void HandleUpdateFailed(ApplicationJob job, ApplicationJobError error)
+        private void HandleUpdateFailed (ApplicationJob job, ApplicationJobError error)
         {
             // Execute: Default update failed command
             string updateFailedCommand = Settings.GetValue("UpdateFailedCommand", "") as string;
@@ -625,7 +626,7 @@ namespace Ketarin
         /// <param name="job">The job to process</param>
         /// <param name="requestedUrl">The URL from which has been downloaded</param>
         /// <returns>true, if a new update has been found and downloaded, false otherwise</returns>
-        protected Status DoDownload(ApplicationJob job, out string requestedUrl)
+        protected Status DoDownload (ApplicationJob job, out string requestedUrl)
         {
             // Lower security policies
             try
@@ -637,7 +638,8 @@ namespace Ketarin
                 // .NET bug under special circumstances
             }
 
-            ServicePointManager.ServerCertificateValidationCallback = delegate {
+            ServicePointManager.ServerCertificateValidationCallback = delegate
+            {
                 return true;
             };
 
@@ -666,7 +668,7 @@ namespace Ketarin
                 {
                     return Status.UpdateAvailable;
                 }
-                
+
                 return Status.NoUpdate;
             }
 
@@ -684,7 +686,7 @@ namespace Ketarin
         /// <param name="job">The job to process</param>
         /// <param name="urlToRequest">URL from which should be downloaded</param>
         /// <returns>true, if a new update has been found and downloaded, false otherwise</returns>
-        protected Status DoDownload(ApplicationJob job, Uri urlToRequest)
+        protected Status DoDownload (ApplicationJob job, Uri urlToRequest)
         {
             // Determine number of segments to create
             int segmentCount = Convert.ToInt32(Settings.GetValue("SegmentCount", 1));
@@ -797,153 +799,7 @@ namespace Ketarin
                     return Status.UpdateSuccessful;
                 }
 
-                // Read all file contents to a temporary location
-                string tmpLocation = Path.GetTempFileName();
-                DateTime lastWriteTime = ApplicationJob.GetLastModified(response);
-
-                // Only use segmented downloader with more than one segment.
-                if (segmentCount > 1)
-                {
-                    // Response can be closed now, new one will be created.
-                    response.Dispose();
-
-                    m_Size[job] = fileSize;
-
-                    Downloader d = new Downloader(new ResourceLocation { Url = urlToRequest.AbsoluteUri, ProtocolProvider = new KetarinProtocolProvider(job, m_Cookies) }, null, tmpLocation, segmentCount);
-                    d.Start();
-                    
-                    while (d.State < DownloaderState.Ended)
-                    {
-                        if (m_CancelUpdates)
-                        {
-                            d.Pause();
-                            break;
-                        }
-
-                        this.OnProgressChanged(d.Segments.Sum(x => x.Transfered), fileSize, job);
-                        Thread.Sleep(250);
-                    }
-
-                    if (d.State == DownloaderState.EndedWithError)
-                    {
-                        throw d.LastError;
-                    }
-                }
-                else
-                {
-                    // Read contents from the web and put into file
-                    using (Stream sourceFile = response.GetResponseStream())
-                    {
-                        using (FileStream targetFile = File.Create(tmpLocation))
-                        {
-                            long byteCount = 0;
-                            int readBytes;
-                            m_Size[job] = fileSize;
-                            
-                            // Only create buffer once and re-use.
-                            const int bufferSize = 1024 * 1024;
-                            byte[] buffer = new byte[bufferSize];
-
-                            do
-                            {
-                                if (m_CancelUpdates) break;
-
-                                // Some adjustment for SCP download: Read only up to the max known bytes
-                                int maxRead = (fileSize > 0) ? (int) Math.Min(fileSize - byteCount, bufferSize) : bufferSize;
-                                if (maxRead == 0) break;
-
-                                readBytes = sourceFile.Read(buffer, 0, maxRead);
-                                if (readBytes > 0) targetFile.Write(buffer, 0, readBytes);
-                                byteCount += readBytes;
-
-                                this.OnProgressChanged(byteCount, fileSize, job);
-
-                            } while (readBytes > 0);
-                        }
-                    }
-                }
-
-                if (m_CancelUpdates)
-                {
-                    m_Progress[job] = 0;
-                    OnStatusChanged(job);
-                    return Status.Failure;
-                }
-
-                // If each version has a different file name (version number),
-                // we might only want to keep one of them. Also, we might
-                // want to free some space on the target location.
-                if (job.DeletePreviousFile && job.NumberOfRevisions <= 1)
-                {
-                    PathEx.TryDeleteFiles(job.PreviousLocation);
-                }
-
-                try
-                {
-                    File.SetLastWriteTime(tmpLocation, lastWriteTime);
-                }
-                catch (ArgumentException)
-                {
-                    // Invalid file date. Ignore and just use DateTime.Now
-                }
-
-                // File downloaded. Now let's check if the hash value is valid or abort otherwise!
-                if (!string.IsNullOrEmpty(job.HashVariable) && job.HashType != HashType.None)
-                {
-                    string varName = job.HashVariable.Trim('{', '}');
-                    string expectedHash = job.Variables.ReplaceAllInString("{" + varName + "}").Trim();
-
-                    // Compare online hash with actual current hash.
-                    if (!string.IsNullOrEmpty(expectedHash))
-                    {
-                        string currentHash = job.GetFileHash(tmpLocation);
-                        if (string.Compare(expectedHash, currentHash, StringComparison.OrdinalIgnoreCase) != 0)
-                        {
-                            LogDialog.Log(job, string.Format("File downloaded, but hash of downloaded file {0} does not match the expected hash {1}.", currentHash, expectedHash));
-                            File.Delete(tmpLocation);
-                            throw new IOException("Hash verification failed.");
-                        }
-                    }
-                }
-
-                try
-                {
-                    FileInfo downloadedFileInfo = new FileInfo(tmpLocation);
-                    job.LastFileSize = downloadedFileInfo.Length;
-                    job.LastFileDate = downloadedFileInfo.LastWriteTime;
-                }
-                catch (Exception ex)
-                {
-                    LogDialog.Log(job, ex);
-                }
-
-                try
-                {
-                    // Before copying, we might have to create the directory
-                    Directory.CreateDirectory(Path.GetDirectoryName(targetFileName));
-
-                    // Take care of creating backups before overwriting the file if desired.
-                    job.BackupRevisions(targetFileName);
-
-                    // Copying might fail if variables have been replaced with bad values.
-                    // However, we cannot rely on functions to clean up the path, since they
-                    // might actually parse the path incorrectly and return an even worse path.
-                    File.Copy(tmpLocation, targetFileName, true);
-                }
-                catch (ArgumentException)
-                {
-                    throw new TargetPathInvalidException(targetFileName);
-                }
-                catch (NotSupportedException)
-                {
-                    throw new TargetPathInvalidException(targetFileName);
-                }
-
-                File.Delete(tmpLocation);
-
-                // At this point, the update is complete
-                job.LastUpdated = DateTime.Now;
-                job.PreviousLocation = targetFileName;
+                TextCopy.ClipboardService.SetText(urlToRequest.AbsoluteUri);
             }
 
             job.Save();
@@ -958,7 +814,7 @@ namespace Ketarin
         /// way for FTP downloads.
         /// </summary>
         /// <returns>-1 if no size could be determined</returns>
-        private static long GetContentLength(WebResponse response)
+        private static long GetContentLength (WebResponse response)
         {
             HttpWebResponse http = response as HttpWebResponse;
             if (http != null)
@@ -1009,7 +865,7 @@ namespace Ketarin
         /// <summary>
         /// Fires the UpdateCompleted event.
         /// </summary>
-        protected virtual void OnUpdateCompleted()
+        protected virtual void OnUpdateCompleted ()
         {
             if (UpdateCompleted != null)
             {
@@ -1020,7 +876,7 @@ namespace Ketarin
         /// <summary>
         /// Fires the StatusChanged event.
         /// </summary>
-        protected virtual void OnStatusChanged(ApplicationJob job)
+        protected virtual void OnStatusChanged (ApplicationJob job)
         {
             if (StatusChanged != null)
             {
@@ -1031,7 +887,7 @@ namespace Ketarin
         /// <summary>
         /// Fires the UpdatesFound.
         /// </summary>
-        protected virtual void OnUpdatesFound(string[] updatedApps)
+        protected virtual void OnUpdatesFound (string[] updatedApps)
         {
             if (UpdatesFound != null && updatedApps.Length > 0)
             {
@@ -1046,7 +902,7 @@ namespace Ketarin
         /// <param name="pos">Current position of the stream</param>
         /// <param name="length">Total length of the stream</param>
         /// <param name="job">Current ApplicationJob</param>
-        protected virtual void OnProgressChanged(long pos, long length, ApplicationJob job)
+        protected virtual void OnProgressChanged (long pos, long length, ApplicationJob job)
         {
             if (length == -1)
             {
